@@ -91,6 +91,7 @@ sequelize migration:generate --name add-ownerId-to-pets
     Pet.belongsTo(models.Owner, { foreignKey: 'ownerId' })
   };
 ``` 
+
 #### Express routes stuff
 
 1. In `routes/owner.js`, let's update the owner INDEX route to also return the owner's pets:
@@ -166,7 +167,9 @@ sequelize migration:generate --name add-ownerId-to-pets
 	  }
 	};
 	```
+	
 1. `sequelize db:migrate`
+
 2. Add the new fields to the Owner model.
 
 	```js
@@ -184,6 +187,7 @@ sequelize migration:generate --name add-ownerId-to-pets
 	  return Owner;
 	};
 	``` 
+	
 1. Add an association to the Walker file.
 
 1. `sequelize seed:generate --name demo-walkers`
@@ -218,7 +222,7 @@ sequelize migration:generate --name add-ownerId-to-pets
 	};	
 	```
 	
-	1. `demo-owners`
+1. `demo-owners`
 
 	```js
 	'use strict';
