@@ -258,7 +258,7 @@ sequelize migration:generate --name add-ownerId-to-pets
 	    */
 	  }
 	};
-```
+	```
 
 1. `dropdb pets_app_development`
 2. `createdb pets_app_development` 
