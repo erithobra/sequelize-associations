@@ -323,3 +323,191 @@ sequelize migration:generate --name add-ownerId-to-pets
 1. `localhost:3000/api/pets`
 
 	![](https://i.imgur.com/iSFYcDE.png)
+
+
+<br>
+
+## Doctor App
+
+1. `mkdir doctor-app`
+2. `cd doctor-app`
+3. `express backend --no-views --git`
+4. `cd backend`
+5. `code .`
+6. `npm install pg sequelize nodemon`
+7. `npm install`
+2. `sequelize init`
+1. `sequelize model:generate --name Appointment --attributes reason:string,doctorId:integer,patientId:integer`
+2. `sequelize model:generate --name Patient --attributes name:string`
+3. `sequelize model:generate --name Doctor --attributes name:string,specialty:string`
+4. `config/config.json`
+
+	```js
+	{
+	  "development": {
+	    "database": "doctor_app_development",
+	    "host": "127.0.0.1",
+	    "dialect": "postgres",
+	    "operatorsAliases": false
+	  },
+	  "test": {
+	    "database": "doctor_app_test",
+	    "host": "127.0.0.1",
+	    "dialect": "postgres",
+	    "operatorsAliases": false
+	  },
+	  "production": {
+	    "database": "doctor_app_production",
+	    "host": "127.0.0.1",
+	    "dialect": "postgres",
+	    "operatorsAliases": false
+	  }
+	}
+	```
+1. `createdb doctor_app_development`
+2. `sequelize db:migrate`
+3. `sequelize seed:generate --name demo-doctors-patients-appointments`
+
+	```js
+	'use strict';
+
+	module.exports = {
+	  up: (queryInterface, Sequelize) => {
+	    return queryInterface.bulkInsert('Doctors', [
+	      {
+	        name: 'John Doe',
+	        specialty: 'Dentist',
+	        createdAt: new Date(),
+	        updatedAt: new Date()
+	      },
+	      {
+	        name: 'Schmitty Footman',
+	        specialty: 'Podiatrist',
+	        createdAt: new Date(),
+	        updatedAt: new Date()
+	      }
+	    ], {})
+	      .then(() => {
+	        return queryInterface.bulkInsert('Patients', [
+	          {
+	            name: 'Patient 1',
+	            createdAt: new Date(),
+	            updatedAt: new Date()
+	          }, {
+	            name: 'Patient 2',
+	            createdAt: new Date(),
+	            updatedAt: new Date()
+	          }
+	        ], {})
+	      })
+	      .then(() => {
+	        return queryInterface.bulkInsert('Appointments', [
+	          {
+	            reason: 'Teeth stuff',
+	            doctorId: 1,
+	            patientId: 1,
+	            createdAt: new Date(),
+	            updatedAt: new Date()
+	          },
+	          {
+	            reason: 'Foot stuff',
+	            doctorId: 2,
+	            patientId: 2,
+	            createdAt: new Date(),
+	            updatedAt: new Date()
+	          }
+	        ], {})
+	      })
+	  },
+	
+	  down: (queryInterface, Sequelize) => {
+	    /*
+	      Add reverting commands here.
+	      Return a promise to correctly handle asynchronicity.
+	
+	      Example:
+	      return queryInterface.bulkDelete('People', null, {});
+	    */
+	  }
+	};
+	```
+	
+1. `models/doctor.js`
+
+	```js
+	'use strict';
+	module.exports = (sequelize, DataTypes) => {
+	  const Doctor = sequelize.define('Doctor', {
+	    name: DataTypes.STRING,
+	    specialty: DataTypes.STRING
+	  }, {});
+	  Doctor.associate = function (models) {
+	    Doctor.belongsToMany(models.Patient, { through: 'Appointments', foreignKey: 'doctorId' })
+	  };
+	  return Doctor;
+	};	
+	```
+
+1. `models/patient.js`
+
+	```js
+	'use strict';
+	module.exports = (sequelize, DataTypes) => {
+	  const Patient = sequelize.define('Patient', {
+	    id: {
+	      type: DataTypes.INTEGER,
+	      primaryKey: true
+	    },
+	    name: DataTypes.STRING
+	  }, {});
+	  Patient.associate = function (models) {
+	    Patient.belongsToMany(models.Doctor, { through: 'Appointments', foreignKey: 'patientId' })
+	  };
+	  return Patient;
+	};
+	```
+
+1. `routes/index.js`
+
+	```js
+	var express = require('express');
+	var router = express.Router();
+	
+	const Patient = require('../models').Patient
+	const Doctor = require('../models').Doctor
+	const Appointment = require('../models').Appointment
+	
+	router.get('/patients', (req, res) => {
+	  Patient.findAll({
+	    include: [{
+	      model: Doctor,
+	      attributes: ['name', 'specialty']
+	    }]
+	  })
+	    .then(patients => {
+	      res.json({ patients })
+	    })
+	})
+	
+	router.get('/doctors', (req, res) => {
+	  Doctor.findAll({
+	    include: [{
+	      model: Patient,
+	      attributes: ['name']
+	    }]
+	  })
+	    .then(doctors => {
+	      res.json({ doctors })
+	    })
+	})
+	
+	router.get('/appointments', (req, res) => {
+	  Appointment.findAll()
+	    .then(appointments => {
+	      res.json({ appointments })
+	    })
+	})
+	module.exports = router;
+	```
+
+	![](https://i.imgur.com/h5anR3n.png)
