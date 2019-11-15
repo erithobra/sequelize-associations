@@ -5,8 +5,8 @@
 1. Create a migration file to add `ownerId` to the `Pets` table.
 
 	```bash
-sequelize migration:generate --name add-ownerId-to-pets
-```
+	sequelize migration:generate --name add-ownerId-to-pets
+	```
 
 2. Inside the file, add come code to add the column to the table.
 
