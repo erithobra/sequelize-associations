@@ -1,0 +1,1 @@
+# lessonw08d01-sequelize-associations
