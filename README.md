@@ -17,6 +17,7 @@
 	``` 
 
 3. Run `db:migrate` to run the new migration file.
+
 4. In the `models/pet.js`, make sure to add the new column so that our app knows about it.
 
 	```js
@@ -26,7 +27,7 @@
 	    age: DataTypes.INTEGER,
 	    ownerId: DataTypes.INTEGER
 	  }, {});
-  ```
+  	```
 
 1. Let's reseed the `seeders/<TIMESTAMP>-demo-pets.js` with a some owner ids.
 
