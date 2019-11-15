@@ -1,1 +1,325 @@
-# lessonw08d01-sequelize-associations
+## hasMany/belongsTo
+
+#### Sequelize Stuff
+
+1. Create a migration file to add `ownerId` to the `Pets` table.
+
+	```bash
+sequelize migration:generate --name add-ownerId-to-pets
+```
+
+2. Inside the file, add come code to add the column to the table.
+
+	```bash
+	  up: (queryInterface, Sequelize) => {
+	    return queryInterface.addColumn('Pets', 'ownerId', { type: Sequelize.INTEGER });
+	  },
+	``` 
+
+3. Run `db:migrate` to run the new migration file.
+4. In the `models/pet.js`, make sure to add the new column so that our app knows about it.
+
+	```js
+	 const Pet = sequelize.define('Pet', {
+	    name: DataTypes.STRING,
+	    breed: DataTypes.STRING,
+	    age: DataTypes.INTEGER,
+	    ownerId: DataTypes.INTEGER
+	  }, {});
+  ```
+
+1. Let's reseed the `seeders/<TIMESTAMP>-demo-pets.js` with a some owner ids.
+
+	```js
+	'use strict';
+
+	module.exports = {
+	  up: (queryInterface, Sequelize) => {
+	    return queryInterface.bulkDelete('Pets', null, {})
+	      .then(() => {
+	        return queryInterface.bulkInsert('Pets', [
+	          {
+	            name: 'Diesel',
+	            breed: 'Terrier',
+	            age: 2,
+	            ownerId: 1,
+	            createdAt: new Date(),
+	            updatedAt: new Date()
+	          }, {
+	            name: 'Timmy',
+	            breed: 'cat',
+	            age: 2,
+	            ownerId: 1,
+	            createdAt: new Date(),
+	            updatedAt: new Date()
+	          }, {
+	            name: 'Crowley',
+	            breed: 'black',
+	            age: 2,
+	            ownerId: 2,
+	            createdAt: new Date(),
+	            updatedAt: new Date()
+	          }
+	        ], {});
+	      })
+	
+	  },
+	
+	  down: (queryInterface, Sequelize) => {
+	    /*
+	      Add reverting commands here.
+	      Return a promise to correctly handle asynchronicity.
+	  
+	      Example:
+	      return queryInterface.bulkDelete('People', null, {});
+	    */
+	  }
+	};
+	```
+1. Run `sequelize db:seed:all`
+4. In the `models/owner.js` file, add the association for an `Owner.hasMany(models.Pet)`.
+
+	```js
+	  Owner.associate = function (models) {
+	 	 Owner.hasMany(models.Pet, { foreignKey: 'ownerId' })
+	  };
+	``` 
+5. In the `models/pet.js` file, add the association for a `Pet.belongsTo(models.Owner)`.
+
+```js
+  Pet.associate = function (models) {
+    Pet.belongsTo(models.Owner, { foreignKey: 'ownerId' })
+  };
+``` 
+#### Express routes stuff
+
+1. In `routes/owner.js`, let's update the owner INDEX route to also return the owner's pets:
+
+	```js
+	const express = require('express');
+	const router = express.Router()
+	const Owner = require('../models').Owner
+	const Pet = require('../models').Pet
+	
+	// INDEX FOR ALL OWNERS
+	router.get('/', (req, res) => {
+	  Owner.findAll({
+	    include: [{ model: Pet }]
+	  })
+	    .then(owners => {
+	      res.json({ owners })
+	    })
+	})
+	
+	module.exports = router;
+	```
+
+	![](https://i.imgur.com/xyj84tM.png)
+
+1. What if we don't need all the extra fields like `id`, `createdAt` or `updatedAt`? We can trim our response object and define only what we want returned with an `attributes` Array.
+
+	```js
+	  router.get('/', (req, res) => {
+		  Owner.findAll({
+		    include: [{
+		      model: Pet,
+		      attributes: ['name', 'breed', 'age'] //PET FIELDS
+		    }],
+		    attributes: ['firstName', 'lastName'] // OWNER FIELDS
+		  })
+		    .then(owners => {
+		      res.json({ owners })
+		    })
+		})
+	```
+	
+	![](https://i.imgur.com/MqIAB7E.png)
+	
+<br>
+
+## hasManyThrough
+
+[Docs](https://sequelize.readthedocs.io/en/latest/docs/associations/#belongs-to-many-associations)
+
+1. `sequelize model:generate --name Walker --attributes name:string,gender:string`
+2. `sequelize migration:generate --name add-walker-id-and-pet-id-to-owners`
+
+	```js
+	'use strict';
+
+	module.exports = {
+	  up: (queryInterface, Sequelize) => {
+	    return queryInterface.addColumn('Owners', 'petId', { type: Sequelize.INTEGER })
+	      .then(() => {
+	        return queryInterface.addColumn('Owners', 'walkerId', { type: Sequelize.INTEGER });
+	      })
+	  },
+	
+	  down: (queryInterface, Sequelize) => {
+	    /*
+	      Add reverting commands here.
+	      Return a promise to correctly handle asynchronicity.
+	
+	      Example:
+	      return queryInterface.dropTable('users');
+	    */
+	  }
+	};
+	```
+1. `sequelize db:migrate`
+2. Add the new fields to the Owner model.
+
+	```js
+	'use strict';
+	module.exports = (sequelize, DataTypes) => {
+	  const Owner = sequelize.define('Owner', {
+	    firstName: DataTypes.STRING,
+	    lastName: DataTypes.STRING,
+	    petId: DataTypes.INTEGER,
+	    walkerId: DataTypes.INTEGER
+	  }, {});
+	  Owner.associate = function (models) {
+	    Owner.hasMany(models.Pet, { foreignKey: 'ownerId' })
+	  };
+	  return Owner;
+	};
+	``` 
+1. Add an association to the Walker file.
+
+1. `sequelize seed:generate --name demo-walkers`
+
+	```js
+	'use strict';
+	
+	module.exports = {
+	  up: (queryInterface, Sequelize) => {
+	    return queryInterface.bulkInsert('Walkers', [
+	      {
+	        name: 'Walker 1',
+	        createdAt: new Date(),
+	        updatedAt: new Date()
+	      },
+	      {
+	        name: 'Walker 2',
+	        createdAt: new Date(),
+	        updatedAt: new Date()
+	      }], {});
+	  },
+	
+	  down: (queryInterface, Sequelize) => {
+	    /*
+	      Add reverting commands here.
+	      Return a promise to correctly handle asynchronicity.
+	
+	      Example:
+	      return queryInterface.bulkDelete('People', null, {});
+	    */
+	  }
+	};	
+	```
+	
+	1. `demo-owners`
+
+	```js
+	'use strict';
+
+	module.exports = {
+	  up: (queryInterface, Sequelize) => {
+	    return queryInterface.bulkInsert('Owners', [
+	      {
+	        firstName: 'Marc',
+	        lastName: 'Wright',
+	        createdAt: new Date(),
+	        updatedAt: new Date(),
+	        walkerId: 1,
+	        petId: 1
+	      },
+	      {
+	        firstName: 'Schmitty',
+	        lastName: 'McGoo',
+	        createdAt: new Date(),
+	        updatedAt: new Date(),
+	        walkerId: 1,
+	        petId: 2
+	      }], {});
+	  },
+	
+	  down: (queryInterface, Sequelize) => {
+	    /*
+	      Add reverting commands here.
+	      Return a promise to correctly handle asynchronicity.
+	
+	      Example:
+	      return queryInterface.bulkDelete('People', null, {});
+	    */
+	  }
+	};
+```
+
+1. `dropdb pets_app_development`
+2. `createdb pets_app_development` 
+3. `sequelize db:migrate`
+4.  `sequelize db:seed:all`
+
+#### Add index route for walkers
+
+1. `routes/walkers.js`
+
+	```js
+	const express = require('express');
+	const router = express.Router()
+	const Walker = require('../models').Walker
+	const Pet = require('../models').Pet
+	
+	// INDEX FOR ALL OWNERS
+	router.get('/', (req, res) => {
+	  Walker.findAll({
+	    include: [{
+	      model: Pet,
+	      attributes: ['name', 'breed', 'age']
+	    }]
+	  })
+	    .then(walkers => {
+	      res.json({ walkers })
+	    })
+	})
+	
+	module.exports = router;
+	```
+
+1. `app.js`
+
+	```js
+	app.use('/api/walkers', require('./routes/walkers'));
+	```
+	
+1. `localhost:3000/api/walkers`
+
+	![](https://i.imgur.com/yVwTazi.png)
+	
+#### Return walkers for pet index route
+
+1. `routes/pets.js`
+
+	```js
+	const Pet = require('../models').Pet;
+	const Walker = require('../models').Walker;
+	
+	// ALL THE PETS
+	router.get('/', (req, res) => {
+	  Pet.findAll({
+	    include: [{
+	      model: Walker,
+	      attributes: ['name']
+	    }]
+	  })
+	    .then(pets => {
+	      res.json({ pets: pets })
+	    })
+	})
+	```
+		
+	
+1. `localhost:3000/api/pets`
+
+	![](https://i.imgur.com/iSFYcDE.png)
