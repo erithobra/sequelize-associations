@@ -1,6 +1,33 @@
-## hasMany/belongsTo
+# Sequelize Associations and Validations
 
-#### Sequelize Stuff
+## Objectives
+
+- Implement a hasMany/belongsTo association between `Owner` and `Pet`
+- Return all pets belonging to an owner in the INDEX route
+- Create a migration for `ownerId` in the `Pets` table
+- Add a validation to `Pet`
+- Limit the fields that are returned from the database.
+
+<br>
+
+## Intro
+
+Last week we built a `pets-app`. Eventually, we added Postgres and Sequelize to the app. Today we will use Sequelize associate that an `Owner` `hasMany` instances of a `Pet` and that a `Pet` `belongsTo` an `Owner`.
+
+We'll also use this as an opportunity to review migrations and introduce Sequelize model validations.
+
+Here are the rough steps we'll follow:
+
+- Add an `ownerId` foreign key column to the `Pets` table
+- Re-seed our database so that our starter pets have a foreign key.
+- Define the Sequelize associations in the `Pet` and `Owner` models.
+- Update our Express `api/owners` INDEX route to include all the pets that belong to an owner.	
+
+<br>
+
+
+## `hasMany`/`belongsTo` - Sequelize Stuff
+
 
 1. Create a migration file to add `ownerId` to the `Pets` table.
 
@@ -93,7 +120,9 @@
   };
 ``` 
 
-#### Express routes stuff
+<br>
+
+## `hasMany`/`belongsTo` - Express Route Stuff
 
 1. In `routes/owner.js`, let's update the owner INDEX route to also return the owner's pets:
 
@@ -138,6 +167,13 @@
 	![](https://i.imgur.com/MqIAB7E.png)
 	
 <br>
+
+## Validations
+
+[Sequelize Validations](https://sequelize.readthedocs.io/en/latest/docs/models-definition/#validations)
+
+<br>
+
 
 ## hasManyThrough
 
