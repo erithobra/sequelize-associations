@@ -5,8 +5,8 @@
 - Implement a hasMany/belongsTo association between `Owner` and `Pet`
 - Return all pets belonging to an owner in the INDEX route
 - Create a migration for `ownerId` in the `Pets` table
-- Add a validation to `Pet`
-- Limit the fields that are returned from the database.
+- Add a validation to the `Pet` model
+- Limit the fields that are returned from the database
 
 <br>
 
@@ -171,6 +171,25 @@ Here are the rough steps we'll follow:
 ## Validations
 
 [Sequelize Validations](https://sequelize.readthedocs.io/en/latest/docs/models-definition/#validations)
+
+Let's add a validation that A Pet will not be persisted without a name field.
+
+`models/pet.js`
+
+```js
+const Pet = sequelize.define('Pet', {
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+```
+
+![](https://i.imgur.com/uFic35m.png)
+
+![](https://i.imgur.com/1hP1E22.png)
+
+
+
 
 <br>
 
