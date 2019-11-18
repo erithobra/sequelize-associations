@@ -109,7 +109,7 @@ Here are the rough steps we'll follow:
 
 	```js
 	  Owner.associate = function (models) {
-	 	 Owner.hasMany(models.Pet, { foreignKey: 'ownerId' })
+	    Owner.hasMany(models.Pet, { foreignKey: 'ownerId' })
 	  };
 	``` 
 5. In the `models/pet.js` file, add the association for a `Pet.belongsTo(models.Owner)`.
