@@ -194,6 +194,9 @@ const Pet = sequelize.define('Pet', {
 <br>
 
 
+<details>
+
+<summary>Has Many Through</summary>
 ## hasManyThrough
 
 [Docs](https://sequelize.readthedocs.io/en/latest/docs/associations/#belongs-to-many-associations)
@@ -571,3 +574,5 @@ const Pet = sequelize.define('Pet', {
 	```
 
 	![](https://i.imgur.com/h5anR3n.png)
+
+</details>
