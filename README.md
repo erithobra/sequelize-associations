@@ -54,7 +54,47 @@ Just to confirm, let's go into the `psql` shell and confirm that a `Users` table
 Fill the empty seeders file.
 
 ```
-'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.bulkInsert('Users', [      {          name:'Tony Stark',          username: 'ironman',          password: 'prettyawesome',          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'Clark Kent',          username: 'superman',          password: `canfly`,          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'Bruce Wayne',          username: 'batman',          password: 'hasgadgets',          createdAt: new Date(),          updatedAt: new Date()      }    ], {});  },  down: (queryInterface, Sequelize) => {    /*      Add reverting commands here.      Return a promise to correctly handle asynchronicity.      Example:      return queryInterface.bulkDelete('People', null, {});    */  }};```
+'use strict';
+
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    return queryInterface.bulkInsert('Users', [
+      {
+          name:'Tony Stark',
+          username: 'ironman',
+          password: 'prettyawesome',
+          createdAt: new Date(),
+          updatedAt: new Date()
+      },
+      {
+          name:'Clark Kent',
+          username: 'superman',
+          password: `canfly`,
+          createdAt: new Date(),
+          updatedAt: new Date()
+      },
+      {
+          name:'Bruce Wayne',
+          username: 'batman',
+          password: 'hasgadgets',
+          createdAt: new Date(),
+          updatedAt: new Date()
+      }
+    ], {});
+  },
+
+  down: (queryInterface, Sequelize) => {
+    /*
+      Add reverting commands here.
+      Return a promise to correctly handle asynchronicity.
+
+      Example:
+      return queryInterface.bulkDelete('People', null, {});
+    */
+  }
+};
+
+```
 
 Run `sequelize db:seed:all` to seed `Users` table.
 
@@ -85,14 +125,59 @@ Now that `User` model has been created we can go ahead and add `userId` column t
 4. In the `models/fruit.js`, make sure to add the new column so that our app knows about it.
 
 	```js
-	const Fruit = sequelize.define('Fruit', {    name: DataTypes.STRING,    color: DataTypes.STRING,    readyToEat: DataTypes.BOOLEAN,
-    userId: DataTypes.INTEGER  }, {});
-  ```
+	const Fruit = sequelize.define('Fruit', {
+	    name: DataTypes.STRING,
+	    color: DataTypes.STRING,
+	    readyToEat: DataTypes.BOOLEAN,
+	    userId: DataTypes.INTEGER
+  	}, {});
+  	```
 
 1. Let's reseed the `seeders/<TIMESTAMP>-demo-fruits.js` with a some owner ids.
 
 ```
-'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.bulkInsert('Fruits', [      {          name:'apple',          color: 'red',          readyToEat: true,          userId: 1,          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'pear',          color: 'green',          readyToEat: false,          userId: 2,          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'banana',          color: 'yellow',          readyToEat: true,          userId: 3,          createdAt: new Date(),          updatedAt: new Date()      }    ], {});  },  down: (queryInterface, Sequelize) => {    /*      Add reverting commands here.      Return a promise to correctly handle asynchronicity.      Example:      return queryInterface.bulkDelete('Fruits', null, {});    */  	}};
+'use strict';
+
+module.exports = {
+  up: (queryInterface, Sequelize) => {
+    return queryInterface.bulkInsert('Fruits', [
+      {
+          name:'apple',
+          color: 'red',
+          readyToEat: true,
+          userId: 1,
+          createdAt: new Date(),
+          updatedAt: new Date()
+      },
+      {
+          name:'pear',
+          color: 'green',
+          readyToEat: false,
+          userId: 2,
+          createdAt: new Date(),
+          updatedAt: new Date()
+      },
+      {
+          name:'banana',
+          color: 'yellow',
+          readyToEat: true,
+          userId: 3,
+          createdAt: new Date(),
+          updatedAt: new Date()
+      }
+    ], {});
+  },
+
+  down: (queryInterface, Sequelize) => {
+    /*
+      Add reverting commands here.
+      Return a promise to correctly handle asynchronicity.
+
+      Example:
+      return queryInterface.bulkDelete('Fruits', null, {});
+    */
+  	}
+};
 ```
 
 6. Run `sequelize db:seed:all` 
@@ -103,7 +188,16 @@ Now that `User` model has been created we can go ahead and add `userId` column t
 If you look at the data in `Users` and `Fruits` tables, you'll see that there is a lot of duplication.
 
 ```
-fruits_dev=# SELECT * FROM "Users"; id |    name     | username |   password    |         createdAt          |         updatedAt----+-------------+----------+---------------+----------------------------+----------------------------  1 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07  2 | Clark Kent  | superman | canfly        | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07  3 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07  4 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07  5 | Clark Kent  | superman | canfly        | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07  6 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07(6 rows)
+fruits_dev=# SELECT * FROM "Users";
+ id |    name     | username |   password    |         createdAt          |         updatedAt
+----+-------------+----------+---------------+----------------------------+----------------------------
+  1 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07
+  2 | Clark Kent  | superman | canfly        | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07
+  3 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07
+  4 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07
+  5 | Clark Kent  | superman | canfly        | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07
+  6 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07
+(6 rows)
 ```
 
 This means that everytime we are seeding data in the database it is creating new rows without deleting the old ones. Lets make use of `down` method in our seed files to delete previous rows before seeding new data.
@@ -112,7 +206,9 @@ We are now going to make use of `down` method in our seeders files to bulk delet
 
 ```
 ...
-	down: (queryInterface, Sequelize) => {    	return queryInterface.bulkDelete('Fruits', null, {});  	}
+	down: (queryInterface, Sequelize) => {
+    	return queryInterface.bulkDelete('Fruits', null, {});
+  	}
 ...
 ```
 
@@ -120,7 +216,9 @@ Simillarly we'll make the change in `xxxxxxxxxxx-demo-users.js`,
 
 ```
 ...
-	down: (queryInterface, Sequelize) => {    	return queryInterface.bulkDelete('Users', null, {});  	}
+	down: (queryInterface, Sequelize) => {
+    	return queryInterface.bulkDelete('Users', null, {});
+  	}
 ...
 ```
 
@@ -140,7 +238,9 @@ In Sequelize this is represented by `hasMany` and `belongsTo`.
 4. In the `models/user.js` file, add the association for an `User.hasMany(models.Fruit)`.
 
 	```js
-	User.associate = function(models) {    	User.hasMany(models.Fruit, { foreignKey: 'userId' })  	};
+	User.associate = function(models) {
+    	User.hasMany(models.Fruit, { foreignKey: 'userId' })
+  	};
 	``` 
 5. In the `models/fruit.js` file, add the association for a `Fruit.belongsTo(models.User)`.
 
