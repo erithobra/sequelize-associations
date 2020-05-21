@@ -2,127 +2,159 @@
 
 ## Objectives
 
-- Implement a hasMany/belongsTo association between `Owner` and `Pet`
-- Return all pets belonging to an owner in the INDEX route
-- Create a migration for `ownerId` in the `Pets` table
-- Add a validation to the `Pet` model
+- Implement a hasMany/belongsTo association between `User` and `Fruit`
+- Return all fruits belonging to a user in the INDEX route
+- Create a migration for `userId` in the `Fruits` table
+- Add a validation to the `Fruit` model
 - Limit the fields that are returned from the database
 
 <br>
 
 ## Intro
 
-Last week we built a `pets-app`. Eventually, we added Postgres and Sequelize to the app. Today we will use Sequelize associate that an `Owner` `hasMany` instances of a `Pet` and that a `Pet` `belongsTo` an `Owner`.
+Last week we built a `fruit-app`. Yesterday, we added Postgres and Sequelize to the app. Today we will use Sequelize associate that a **User *hasMany* instances of a Fruit** and that a **Fruit *belongsTo* a User**. This represents `One-To-Many` or `Many-To-One` relationship in a SQL database.
 
 We'll also use this as an opportunity to review migrations and introduce Sequelize model validations.
 
 Here are the rough steps we'll follow:
 
-- Add an `ownerId` foreign key column to the `Pets` table
-- Re-seed our database so that our starter pets have a foreign key.
-- Define the Sequelize associations in the `Pet` and `Owner` models.
-- Update our Express `api/owners` INDEX route to include all the pets that belong to an owner.	
+- Create `User` model
+- Add seed data
+- Add an `userId` foreign key column to the `Fruits` table
+- Re-seed our database so that our starter fruits have a foreign key.
+- Define the Sequelize associations in the `Fruit` and `User` models.
+- Update our Express `users/` INDEX route to include all the fruits that belong to an owner.	
 
-<br>
+## Code Along
+
+### Create User model
+
+Lets use the Sequelize CLI `model:generate` command again to create a `User` model with `name`, `username` and `password` attributes:
+
+`sequelize model:generate --name User --attributes name:string,username:string,password:string`
+
+Just like before two files will be created- `models/user.js` and `migrations/XXXXXXX-create-user.js`
+
+Now, we'll run the migrations to create `User` table in our database.
+
+`sequelize db:migrate`
+
+Just to confirm, let's go into the `psql` shell and confirm that a `Users` table has been created.
+
+1. `psql` - You can run this command from any directory to enter the Postgres shell
+2. `\l` - See the list of databases
+3. `\c fruits_dev` - Connect to our database
+4. `\dt` - This will show the database tables 
 
 
-## `hasMany`/`belongsTo` - Sequelize Stuff
+#### Add seed data in User
 
+`sequelize seed:generate --name demo-users`
 
-1. Create a migration file to add `ownerId` to the `Pets` table.
+Fill the empty seeders file.
+
+```
+'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.bulkInsert('Users', [      {          name:'Tony Stark',          username: 'ironman',          password: 'prettyawesome',          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'Clark Kent',          username: 'superman',          password: `canfly`,          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'Bruce Wayne',          username: 'batman',          password: 'hasgadgets',          createdAt: new Date(),          updatedAt: new Date()      }    ], {});  },  down: (queryInterface, Sequelize) => {    /*      Add reverting commands here.      Return a promise to correctly handle asynchronicity.      Example:      return queryInterface.bulkDelete('People', null, {});    */  }};```
+
+Run `sequelize db:seed:all` to seed `Users` table.
+
+Confirm in `psql` by running `SELECT * FROM "Users";`
+
+---------------------------
+
+### Add column `userId` to `Fruits` 
+
+Now that `User` model has been created we can go ahead and add `userId` column to `Fruits` table.
+
+1. Create a migration file to add `userId` to the `Users` table.
 
 	```bash
-	sequelize migration:generate --name add-ownerId-to-pets
+	sequelize migration:generate --name add-userId-to-fruits
 	```
 
-2. Inside the file, add come code to add the column to the table.
+2. Inside the file, add code to add the column to the table.
 
 	```bash
 	  up: (queryInterface, Sequelize) => {
-	    return queryInterface.addColumn('Pets', 'ownerId', { type: Sequelize.INTEGER });
+	    return queryInterface.addColumn('Fruits', 'userId', { type: Sequelize.INTEGER });
 	  },
 	``` 
 
-3. Run `db:migrate` to run the new migration file.
+3. Run `sequelize db:migrate` to run the new migration file.
 
-4. In the `models/pet.js`, make sure to add the new column so that our app knows about it.
-
-	```js
-	 const Pet = sequelize.define('Pet', {
-	    name: DataTypes.STRING,
-	    breed: DataTypes.STRING,
-	    age: DataTypes.INTEGER,
-	    ownerId: DataTypes.INTEGER
-	  }, {});
-  	```
-
-1. Let's reseed the `seeders/<TIMESTAMP>-demo-pets.js` with a some owner ids.
+4. In the `models/fruit.js`, make sure to add the new column so that our app knows about it.
 
 	```js
-	'use strict';
+	const Fruit = sequelize.define('Fruit', {    name: DataTypes.STRING,    color: DataTypes.STRING,    readyToEat: DataTypes.BOOLEAN,
+    userId: DataTypes.INTEGER  }, {});
+  ```
 
-	module.exports = {
-	  up: (queryInterface, Sequelize) => {
-	    return queryInterface.bulkDelete('Pets', null, {})
-	      .then(() => {
-	        return queryInterface.bulkInsert('Pets', [
-	          {
-	            name: 'Diesel',
-	            breed: 'Terrier',
-	            age: 2,
-	            ownerId: 1,
-	            createdAt: new Date(),
-	            updatedAt: new Date()
-	          }, {
-	            name: 'Timmy',
-	            breed: 'cat',
-	            age: 2,
-	            ownerId: 1,
-	            createdAt: new Date(),
-	            updatedAt: new Date()
-	          }, {
-	            name: 'Crowley',
-	            breed: 'black',
-	            age: 2,
-	            ownerId: 2,
-	            createdAt: new Date(),
-	            updatedAt: new Date()
-	          }
-	        ], {});
-	      })
-	
-	  },
-	
-	  down: (queryInterface, Sequelize) => {
-	    /*
-	      Add reverting commands here.
-	      Return a promise to correctly handle asynchronicity.
-	  
-	      Example:
-	      return queryInterface.bulkDelete('People', null, {});
-	    */
-	  }
+1. Let's reseed the `seeders/<TIMESTAMP>-demo-fruits.js` with a some owner ids.
+
+```
+'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.bulkInsert('Fruits', [      {          name:'apple',          color: 'red',          readyToEat: true,          userId: 1,          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'pear',          color: 'green',          readyToEat: false,          userId: 2,          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'banana',          color: 'yellow',          readyToEat: true,          userId: 3,          createdAt: new Date(),          updatedAt: new Date()      }    ], {});  },  down: (queryInterface, Sequelize) => {    /*      Add reverting commands here.      Return a promise to correctly handle asynchronicity.      Example:      return queryInterface.bulkDelete('Fruits', null, {});    */  	}};
+```
+
+6. Run `sequelize db:seed:all` 
+
+
+#### Bulk Delete exiting Data
+
+If you look at the data in `Users` and `Fruits` tables, you'll see that there is a lot of duplication.
+
+```
+fruits_dev=# SELECT * FROM "Users"; id |    name     | username |   password    |         createdAt          |         updatedAt----+-------------+----------+---------------+----------------------------+----------------------------  1 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07  2 | Clark Kent  | superman | canfly        | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07  3 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07  4 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07  5 | Clark Kent  | superman | canfly        | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07  6 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07(6 rows)
+```
+
+This means that everytime we are seeding data in the database it is creating new rows without deleting the old ones. Lets make use of `down` method in our seed files to delete previous rows before seeding new data.
+
+We are now going to make use of `down` method in our seeders files to bulk delete all rows before inserting new ones. Go to `xxxxxxxxxxx-demo-fruits.js` and add the following code,
+
+```
+...
+	down: (queryInterface, Sequelize) => {    	return queryInterface.bulkDelete('Fruits', null, {});  	}
+...
+```
+
+Simillarly we'll make the change in `xxxxxxxxxxx-demo-users.js`,
+
+```
+...
+	down: (queryInterface, Sequelize) => {    	return queryInterface.bulkDelete('Users', null, {});  	}
+...
+```
+
+Once the above changes our made, we will ask sequelize to delete the data
+
+`sequelize db:seed:undo:all`
+
+After this, run `sequelize db:seed:all` to reseed the data.
+
+
+### `hasMany`/`belongsTo` - Sequelize
+
+Now we talked about it briefly, one `User` can have many `Fruits`, that means `User` has a **many-to-one** relationship with `Fruits`. On the flip side a `Fruit` can be created by only one `User` so `Fruit` has a **one-to-many** relationship with `User`. This means that we have a foreign key column `userId` in `Fruits` table in order to have an association between the two tables.
+
+In Sequelize this is represented by `hasMany` and `belongsTo`. 
+
+4. In the `models/user.js` file, add the association for an `User.hasMany(models.Fruit)`.
+
+	```js
+	User.associate = function(models) {    	User.hasMany(models.Fruit, { foreignKey: 'userId' })  	};
+	``` 
+5. In the `models/fruit.js` file, add the association for a `Fruit.belongsTo(models.User)`.
+
+	```js
+	Fruit.associate = function(models) {
+	    Fruit.belongsTo(models.User, { foreignKey: 'userId' })
 	};
-	```
-1. Run `sequelize db:seed:all`
-4. In the `models/owner.js` file, add the association for an `Owner.hasMany(models.Pet)`.
-
-	```js
-	  Owner.associate = function (models) {
-	    Owner.hasMany(models.Pet, { foreignKey: 'ownerId' })
-	  };
 	``` 
-5. In the `models/pet.js` file, add the association for a `Pet.belongsTo(models.Owner)`.
 
-```js
-  Pet.associate = function (models) {
-    Pet.belongsTo(models.Owner, { foreignKey: 'ownerId' })
-  };
-``` 
+In the above case when we do `Fruit.belongsTo(User)`, we are creating a relation that will enable us to call `fruit.getUser()`. `User.hasMany(Fruit)` links the association other way, we can now call `user.getFruits()` to get all fruits added by a user. This is called as bi-directional relationship. 
 
-<br>
+### Update Controller
 
-## `hasMany`/`belongsTo` - Express Route Stuff
+So far we don't have a separate APIs to add the users, before creating that for we will access a user from fruit. Remember `Fruit.belongsTo(User)` lets us access 
 
 1. In `routes/owner.js`, let's update the owner INDEX route to also return the owner's pets:
 
