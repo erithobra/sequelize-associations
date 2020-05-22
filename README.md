@@ -54,47 +54,7 @@ Just to confirm, let's go into the `psql` shell and confirm that a `Users` table
 Fill the empty seeders file.
 
 ```
-'use strict';
-
-module.exports = {
-  up: (queryInterface, Sequelize) => {
-    return queryInterface.bulkInsert('Users', [
-      {
-          name:'Tony Stark',
-          username: 'ironman',
-          password: 'prettyawesome',
-          createdAt: new Date(),
-          updatedAt: new Date()
-      },
-      {
-          name:'Clark Kent',
-          username: 'superman',
-          password: `canfly`,
-          createdAt: new Date(),
-          updatedAt: new Date()
-      },
-      {
-          name:'Bruce Wayne',
-          username: 'batman',
-          password: 'hasgadgets',
-          createdAt: new Date(),
-          updatedAt: new Date()
-      }
-    ], {});
-  },
-
-  down: (queryInterface, Sequelize) => {
-    /*
-      Add reverting commands here.
-      Return a promise to correctly handle asynchronicity.
-
-      Example:
-      return queryInterface.bulkDelete('People', null, {});
-    */
-  }
-};
-
-```
+'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.bulkInsert('Users', [      {          name:'Tony Stark',          username: 'ironman',          password: 'prettyawesome',          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'Clark Kent',          username: 'superman',          password: `canfly`,          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'Bruce Wayne',          username: 'batman',          password: 'hasgadgets',          createdAt: new Date(),          updatedAt: new Date()      }    ], {});  },  down: (queryInterface, Sequelize) => {    /*      Add reverting commands here.      Return a promise to correctly handle asynchronicity.      Example:      return queryInterface.bulkDelete('People', null, {});    */  }};```
 
 Run `sequelize db:seed:all` to seed `Users` table.
 
@@ -125,59 +85,14 @@ Now that `User` model has been created we can go ahead and add `userId` column t
 4. In the `models/fruit.js`, make sure to add the new column so that our app knows about it.
 
 	```js
-	const Fruit = sequelize.define('Fruit', {
-	    name: DataTypes.STRING,
-	    color: DataTypes.STRING,
-	    readyToEat: DataTypes.BOOLEAN,
-	    userId: DataTypes.INTEGER
-  	}, {});
-  	```
+	const Fruit = sequelize.define('Fruit', {    name: DataTypes.STRING,    color: DataTypes.STRING,    readyToEat: DataTypes.BOOLEAN,
+    userId: DataTypes.INTEGER  }, {});
+  ```
 
 1. Let's reseed the `seeders/<TIMESTAMP>-demo-fruits.js` with a some owner ids.
 
 ```
-'use strict';
-
-module.exports = {
-  up: (queryInterface, Sequelize) => {
-    return queryInterface.bulkInsert('Fruits', [
-      {
-          name:'apple',
-          color: 'red',
-          readyToEat: true,
-          userId: 1,
-          createdAt: new Date(),
-          updatedAt: new Date()
-      },
-      {
-          name:'pear',
-          color: 'green',
-          readyToEat: false,
-          userId: 2,
-          createdAt: new Date(),
-          updatedAt: new Date()
-      },
-      {
-          name:'banana',
-          color: 'yellow',
-          readyToEat: true,
-          userId: 3,
-          createdAt: new Date(),
-          updatedAt: new Date()
-      }
-    ], {});
-  },
-
-  down: (queryInterface, Sequelize) => {
-    /*
-      Add reverting commands here.
-      Return a promise to correctly handle asynchronicity.
-
-      Example:
-      return queryInterface.bulkDelete('Fruits', null, {});
-    */
-  	}
-};
+'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.bulkInsert('Fruits', [      {          name:'apple',          color: 'red',          readyToEat: true,          userId: 1,          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'pear',          color: 'green',          readyToEat: false,          userId: 2,          createdAt: new Date(),          updatedAt: new Date()      },      {          name:'banana',          color: 'yellow',          readyToEat: true,          userId: 3,          createdAt: new Date(),          updatedAt: new Date()      }    ], {});  },  down: (queryInterface, Sequelize) => {    /*      Add reverting commands here.      Return a promise to correctly handle asynchronicity.      Example:      return queryInterface.bulkDelete('Fruits', null, {});    */  	}};
 ```
 
 6. Run `sequelize db:seed:all` 
@@ -188,16 +103,7 @@ module.exports = {
 If you look at the data in `Users` and `Fruits` tables, you'll see that there is a lot of duplication.
 
 ```
-fruits_dev=# SELECT * FROM "Users";
- id |    name     | username |   password    |         createdAt          |         updatedAt
-----+-------------+----------+---------------+----------------------------+----------------------------
-  1 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07
-  2 | Clark Kent  | superman | canfly        | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07
-  3 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07
-  4 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07
-  5 | Clark Kent  | superman | canfly        | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07
-  6 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07
-(6 rows)
+fruits_dev=# SELECT * FROM "Users"; id |    name     | username |   password    |         createdAt          |         updatedAt----+-------------+----------+---------------+----------------------------+----------------------------  1 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07  2 | Clark Kent  | superman | canfly        | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07  3 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07  4 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07  5 | Clark Kent  | superman | canfly        | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07  6 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07(6 rows)
 ```
 
 This means that everytime we are seeding data in the database it is creating new rows without deleting the old ones. Lets make use of `down` method in our seed files to delete previous rows before seeding new data.
@@ -206,9 +112,7 @@ We are now going to make use of `down` method in our seeders files to bulk delet
 
 ```
 ...
-	down: (queryInterface, Sequelize) => {
-    	return queryInterface.bulkDelete('Fruits', null, {});
-  	}
+	down: (queryInterface, Sequelize) => {    	return queryInterface.bulkDelete('Fruits', null, {});  	}
 ...
 ```
 
@@ -216,9 +120,7 @@ Simillarly we'll make the change in `xxxxxxxxxxx-demo-users.js`,
 
 ```
 ...
-	down: (queryInterface, Sequelize) => {
-    	return queryInterface.bulkDelete('Users', null, {});
-  	}
+	down: (queryInterface, Sequelize) => {    	return queryInterface.bulkDelete('Users', null, {});  	}
 ...
 ```
 
@@ -238,9 +140,7 @@ In Sequelize this is represented by `hasMany` and `belongsTo`.
 4. In the `models/user.js` file, add the association for an `User.hasMany(models.Fruit)`.
 
 	```js
-	User.associate = function(models) {
-    	User.hasMany(models.Fruit, { foreignKey: 'userId' })
-  	};
+	User.associate = function(models) {    	User.hasMany(models.Fruit, { foreignKey: 'userId' })  	};
 	``` 
 5. In the `models/fruit.js` file, add the association for a `Fruit.belongsTo(models.User)`.
 
@@ -254,30 +154,23 @@ In the above case when we do `Fruit.belongsTo(User)`, we are creating a relation
 
 ### Update Controller
 
-So far we don't have a separate APIs to add the users, before creating that for we will access a user from fruit. Remember `Fruit.belongsTo(User)` lets us access 
+So far we don't have a separate APIs to add the users, before creating that for we will access a user from fruit. Remember `Fruit.belongsTo(User)` lets us get User data from fruit. For that we'll do one small change `show()`.
 
-1. In `routes/owner.js`, let's update the owner INDEX route to also return the owner's pets:
+```
+const show = (req, res) => {    Fruit.findByPk(req.params.index, {        include : [User]    })    .then(fruit => {        res.render('show.ejs', {            fruit: fruit        });    })}
+```
+`include` will also populate `User` data when `Fruit` is retrieved from the database.
 
-	```js
-	const express = require('express');
-	const router = express.Router()
-	const Owner = require('../models').Owner
-	const Pet = require('../models').Pet
-	
-	// INDEX FOR ALL OWNERS
-	router.get('/', (req, res) => {
-	  Owner.findAll({
-	    include: [{ model: Pet }]
-	  })
-	    .then(owners => {
-	      res.json({ owners })
-	    })
-	})
-	
-	module.exports = router;
-	```
+### Update View
 
-	![](https://i.imgur.com/xyj84tM.png)
+We'll add `User` information in `show.ejs`. This is the view where we are displaying details of each fruit.
+
+```
+<!DOCTYPE html><html>    <head>        <meta charset="utf-8">        <title></title>    </head>    <body>        <h1>Fruits show page</h1>        The <%=fruit.name; %> is  <%=fruit.color; %>.        <% if(fruit.readyToEat === true){ %>            It is ready to eat        <% } else { %>            It is not ready to eat        <% } %>        It is added by <%=fruit.User.name%>    </body></html>  
+```
+
+See how we are accessing name of the user `fruit.User.name`. Check the detail view page of any fruit and you should see user's name.
+
 
 1. What if we don't need all the extra fields like `id`, `createdAt` or `updatedAt`? We can trim our response object and define only what we want returned with an `attributes` Array.
 
@@ -296,10 +189,7 @@ So far we don't have a separate APIs to add the users, before creating that for 
 		})
 	```
 	
-	![](https://i.imgur.com/MqIAB7E.png)
 	
-<br>
-
 ## Validations
 
 [Sequelize Validations](https://sequelize.readthedocs.io/en/latest/docs/models-definition/#validations)
@@ -315,16 +205,6 @@ const Pet = sequelize.define('Pet', {
       allowNull: false
     },
 ```
-
-![](https://i.imgur.com/uFic35m.png)
-
-![](https://i.imgur.com/1hP1E22.png)
-
-
-
-
-<br>
-
 
 <details>
 
