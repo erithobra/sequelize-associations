@@ -25,7 +25,7 @@ Here are the rough steps we'll follow:
 - Define the Sequelize associations in the `Fruit` and `User` models.
 - Update our Express `users/` INDEX route to include all the fruits that belong to an owner.	
 
-## Code Along
+## Code Along: hasMany
 
 ### Create User model
 
@@ -33,7 +33,11 @@ Lets use the Sequelize CLI `model:generate` command again to create a `User` mod
 
 `sequelize model:generate --name User --attributes name:string,username:string,password:string`
 
-Just like before two files will be created- `models/user.js` and `migrations/XXXXXXX-create-user.js`
+Just like before two files will be created- `models/user.js` and `migrations/XXXXXXX-create-user.js`. Just like earlier we'll add default values to `createdAt` and `updatedAt`.
+
+```
+'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.createTable('Users', {      id: {        allowNull: false,        autoIncrement: true,        primaryKey: true,        type: Sequelize.INTEGER      },      name: {        type: Sequelize.STRING      },      username: {        type: Sequelize.STRING      },      password: {        type: Sequelize.STRING      },      createdAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      },      updatedAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      }    });  },  down: (queryInterface, Sequelize) => {    return queryInterface.dropTable('Users');  }};
+```
 
 Now, we'll run the migrations to create `User` table in our database.
 
@@ -59,27 +63,7 @@ Fill the empty seeders file.
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.bulkInsert('Users', [
-      {
-          name:'Tony Stark',
-          username: 'ironman',
-          password: 'prettyawesome',
-          createdAt: new Date(),
-          updatedAt: new Date()
-      },
-      {
-          name:'Clark Kent',
-          username: 'superman',
-          password: `canfly`,
-          createdAt: new Date(),
-          updatedAt: new Date()
-      },
-      {
-          name:'Bruce Wayne',
-          username: 'batman',
-          password: 'hasgadgets',
-          createdAt: new Date(),
-          updatedAt: new Date()
-      }
+      {        name:'Tony Stark',        username: 'ironman',        password: 'prettyawesome'      },      {        name:'Clark Kent',        username: 'superman',        password: `canfly`      },      {        name:'Bruce Wayne',        username: 'batman',        password: 'hasgadgets'      }
     ], {});
   },
 
@@ -97,6 +81,14 @@ module.exports = {
 ```
 
 Run `sequelize db:seed:all` to seed `Users` table.
+
+#### Running a seed file
+
+There are multiple ways of running a seed file
+
+**sequelize db:seed:all** will run all the seed files, even the ones that have been run before.
+
+**sequelize db:seed --seed XXXXXXXXX-demo-users.js** will run a specific seed file mentioned by name in the command
 
 Confirm in `psql` by running `SELECT * FROM "Users";`
 
@@ -297,23 +289,58 @@ We'll add `User` information in `show.ejs`. This is the view where we are displa
 See how we are accessing name of the user `fruit.User.name`. Check the detail view page of any fruit and you should see user's name.
 
 
-1. What if we don't need all the extra fields like `id`, `createdAt` or `updatedAt`? We can trim our response object and define only what we want returned with an `attributes` Array.
+What if we don't need all the extra fields like `id`, `createdAt` or `updatedAt`? We can trim our response object and define only what we want returned with an `attributes` Array. 
 
-	```js
-	  router.get('/', (req, res) => {
-		  Owner.findAll({
-		    include: [{
-		      model: Pet,
-		      attributes: ['name', 'breed', 'age'] //PET FIELDS
-		    }],
-		    attributes: ['firstName', 'lastName'] // OWNER FIELDS
-		  })
-		    .then(owners => {
-		      res.json({ owners })
-		    })
-		})
-	```
+You can add the below code in `show()` in `controllers/fruit.js`. In the `attributes` we are only including the fields we want.
+
+```
+const show = (req, res) => {    Fruit.findByPk(req.params.index, {        include : [{            model: User,            attributes: ['name']        }],        attributes: ['name', 'color', 'readyToEat']    })    .then(fruit => {        console.log(fruit)        res.render('show.ejs', {            fruit: fruit        });    })}
+```
+
+## Code Along: belongsToMany
+
+So far we have `Fruit` and `User` models where a `Fruit hasMany Users`. Now we are going to create another model `Season` where a fruit can belong to multiple seasons and each season can have multiple fruits. That means that **Fruit has many-to-many relationship with season**. 
+
+Previously we have learned that we need a *Join Table* to save many-to-many relationship between tables. An ORM like Sequelize makes this easier to do by creating the join tables for us. All we need to know is the right syntax.
+
+### You Do
+
+- Just like before create a model `season` with jut one field `name` which will be a `string`. 
+	`sequelize model:generate --name Season --attributes name:string`
+- Migrate it. 
+	`sequelize db:migrate`
+- Add some seed data it in, mainly season names. 
+- Undo the previously seeded data in order to avoid duplicates
+	`sequelize-cli db:seed:undo:all`
+- Add that data to the database.
+	`sequelize db:seed:all`
+- Verify that data is seeded into the database
 	
+```
+fruits_dev=# SELECT * FROM "Seasons"; id |  name  |         createdAt          |         updatedAt----+--------+----------------------------+----------------------------  6 | Summer | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  7 | Winter | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  8 | Spring | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  9 | Autumn  | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07(4 rows)
+```
+
+Now that you have your model setup, lets quickly look at the code so far,
+
+**models/season.js**
+
+```
+'use strict';module.exports = (sequelize, DataTypes) => {  const Season = sequelize.define('Season', {    name: DataTypes.STRING  }, {});  Season.associate = function(models) {    // associations can be defined here  };  return Season;};
+```
+
+**migrations/xxxxxxxxxx-create-season.js**
+
+```
+'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.createTable('Seasons', {      id: {        allowNull: false,        autoIncrement: true,        primaryKey: true,        type: Sequelize.INTEGER      },      name: {        type: Sequelize.STRING      },      createdAt: {        allowNull: false,        type: Sequelize.DATE      },      updatedAt: {        allowNull: false,        type: Sequelize.DATE      }    });  },  down: (queryInterface, Sequelize) => {    return queryInterface.dropTable('Seasons');  }};
+```
+
+**seeders/xxxxxxxxx-demo-season.js**
+
+```
+'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.bulkInsert('Seasons', [      {        name:'Summer',        createdAt: new Date(),        updatedAt: new Date()      },      {        name:'Winter',        createdAt: new Date(),        updatedAt: new Date()      },      {        name:'Spring',        createdAt: new Date(),        updatedAt: new Date()      },      {        name: 'Autumn',        createdAt: new Date(),        updatedAt: new Date()      }     ], {});  },  down: (queryInterface, Sequelize) => {    return queryInterface.bulkDelete('Seasons', null, {});  }};
+```
+	
+### We Do
 	
 ## Validations
 
