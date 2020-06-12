@@ -116,7 +116,7 @@ Now that `User` model has been created we can go ahead and add `userId` column t
 
 #### Bulk Delete exiting Data
 
-If you look at the data in `Users` and `Fruits` tables, you'll see that there is a lot of duplication.
+If you look at the data in `Fruits` tables, you'll see that there is a lot of duplication.
 
 ```
 fruits_dev=# select * from "Fruits"fruits_dev-# ; id |  name  | color  | readyToEat |         createdAt          |         updatedAt          | userId----+--------+--------+------------+----------------------------+----------------------------+--------  3 | banana | yellow | t          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |  4 | Grapes | green  | t          | 2020-06-11 11:38:09.263-07 | 2020-06-11 11:38:09.263-07 |  2 | pear12 | green  | f          | 2020-06-11 08:56:21.261-07 | 2020-06-11 12:16:42.964-07 |  5 | apple  | red    | t          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |      1  6 | pear   | green  | f          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |      2  7 | banana | yellow | t          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |      3(6 rows)
@@ -176,7 +176,9 @@ In Sequelize this is represented by `hasMany` and `belongsTo`.
 
 In the above case when we do `Fruit.belongsTo(User)`, we are creating a relation that will enable us to call `fruit.getUser()`. `User.hasMany(Fruit)` links the association other way, we can now call `user.getFruits()` to get all fruits added by a user. This is called as bi-directional relationship. 
 
-### Update Fruit Controller
+### Show the User that created the Fruit
+
+#### Update Fruit Controller
 
 Let's update our fruit controller to access a user from fruit. 
 
@@ -200,7 +202,7 @@ const show = (req, res) => {
 ```
 `include` will also populate `User` data when `Fruit` is retrieved from the database.
 
-### Update Fruit Show View
+#### Update Fruit Show View
 
 We'll add `User` information in `show.ejs`. This is the view where we are displaying details of each fruit.
 
@@ -235,7 +237,9 @@ You can add the below code in `show()` in `controllers/fruit.js`. In the `attrib
 const show = (req, res) => {    Fruit.findByPk(req.params.index, {        include : [{            model: User,            attributes: ['name']        }],        attributes: ['name', 'color', 'readyToEat']    })    .then(fruit => {        console.log(fruit)        res.render('show.ejs', {            fruit: fruit        });    })}
 ```
 
-### Update User Controller
+### List all Fruits added by the User
+
+#### Update User Controller
 
 Import Fruit model,
 
@@ -245,13 +249,21 @@ const Fruit = require('../models').Fruit;```
 On the profile page list all the fruits created by the user.
 
 ```
-const renderProfile = (req, res) => {    User.findByPk(req.params.index, {        include: [{            model: Fruit,            attributes: ['id','name']        }]     })    .then(userProfile => {        console.log(userProfile.Fruits);        res.render('users/profile.ejs', {            user: userProfile        })    })}
+const renderProfile = (req, res) => {    User.findByPk(req.params.index, {        include: [{            model: Fruit,            attributes: ['id','name']        }]     })    .then(userProfile => {        res.render('users/profile.ejs', {            user: userProfile        })    })}
 ```
 
-### Update Profile View
+#### Update Profile View
 
 ```
-	<h3>List of Fruits added by you:</h3>    <% for (let i=0; i< user.Fruits.length; i++){ %>            <li>               <a href="/fruits/<%=user.Fruits[i].id%>"><%=user.Fruits[i].name%></a>            </li>            <br>    <% } %>    <br><br>
+	<h3>Fruits added by you:</h3>    <% for (let i=0; i< user.Fruits.length; i++){ %>            <li>               <a href="/fruits/<%=user.Fruits[i].id%>"><%=user.Fruits[i].name%></a>            </li>            <br>    <% } %>    <br><br>
+```
+
+### Update Create Fruit to pass in User Id
+
+Since we are now attaching user Id with Fruit let's create a field for that in `new.ejs`
+
+```
+<form action="/fruits" method="POST">	User Id: <input type="text" name="userId" />    Name: <input type="text" name="name" />    Color: <input type="text" name="color" />    Is Ready to Eat: <input type="checkbox" name="readyToEat" />    <input type="submit" value="Create Fruit" /></form>
 ```
 
 ## Code Along: belongsToMany
@@ -262,7 +274,7 @@ Previously we have learned that we need a *Join Table* to save many-to-many rela
 
 ### You Do
 
-- Just like before create a model `season` with jut one field `name` which will be a `string`. 
+- Just like before create a model `season` with just one field `name` which will be a `string`. 
 	`sequelize model:generate --name Season --attributes name:string`
 - Update migration
 
@@ -288,8 +300,75 @@ Previously we have learned that we need a *Join Table* to save many-to-many rela
 fruits_dev=# SELECT * FROM "Seasons"; id |  name  |         createdAt          |         updatedAt----+--------+----------------------------+----------------------------  6 | Summer | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  7 | Winter | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  8 | Spring | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  9 | Autumn  | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07(4 rows)
 ```
 
-Now that you have your model setup, 	
+Now that you have your `Season` model setup, we will create the model for our join table.
 
+### Join Table
+
+Generate model,
+
+`sequelize model:create --name SeasonFruit --attributes fruitId:integer,seasonId:integer`
+
+`SeasonFruit` model will look like,
+
+```
+'use strict';module.exports = (sequelize, DataTypes) => {  const SeasonFruit = sequelize.define('SeasonFruit', {    fruitId: DataTypes.INTEGER,    seasonId: DataTypes.INTEGER  }, {});  SeasonFruit.associate = function(models) {    // associations can be defined here  };  return SeasonFruit;};
+```
+
+Update the migration file,
+
+```
+'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.createTable('SeasonFruits', {      id: {        allowNull: false,        autoIncrement: true,        primaryKey: true,        type: Sequelize.INTEGER      },      fruitId: {        type: Sequelize.INTEGER,        allowNull: false      },      seasonId: {        type: Sequelize.INTEGER,        allowNull: false      },      createdAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      },      updatedAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      }    },    {      uniqueKeys: {          actions_unique: {              fields: ['fruitId', 'seasonId']          }      }    });  },  down: (queryInterface, Sequelize) => {    return queryInterface.dropTable('SeasonFruits');  }};
+``` 	
+
+Update `Fruit` model,
+
+```
+'use strict';module.exports = (sequelize, DataTypes) => {  const Fruit = sequelize.define('Fruit', {    name: DataTypes.STRING,    color: DataTypes.STRING,    readyToEat: DataTypes.BOOLEAN,    userId: DataTypes.INTEGER  }, {});  Fruit.associate = function(models) {    Fruit.belongsTo(models.User, { foreignKey: 'userId' })    Fruit.belongsToMany(models.Season, {      through: 'SeasonFruit',      foreignKey: 'fruitId',      otherKey: 'seasonId'    });  };  return Fruit;};
+```
+
+Update `Season` model,
+
+```
+'use strict';module.exports = (sequelize, DataTypes) => {  const Season = sequelize.define('Season', {    name: DataTypes.STRING  }, {});  Season.associate = function(models) {    Season.belongsToMany(models.Fruit, {      through: 'SeasonFruit',      foreignKey: 'seasonId',      otherKey: 'fruitId'    });  };  return Season;};
+```
+
+###
+
+Update Fruit Controller to display all seasons while editing the fruit,
+
+```
+const renderEdit = (req, res) => {    Fruit.findByPk(req.params.index)    .then(foundFruit => {        Season.findAll()        .then(allSeasons => {            res.render('edit.ejs', {                fruit: foundFruit,                seasons: allSeasons            });        })    })}
+```
+
+Update the `edit.ejs` view.
+
+```
+<select name="season">	<% for ( let i = 0; i < seasons.length; i++ ) {
+		let selected = ( i == 0 ) ? "selected" : "";
+	%>
+		<option value="<%=seasons[i].id%>" <%=selected%>><%=seasons[i].name%>
+		</option>   <% } %></select>
+```
+
+Now update `editFruit` controller to save the season in join table.
+
+```
+const editFruit = (req, res) => {    if(req.body.readyToEat === 'on'){        req.body.readyToEat = true;    } else{        req.body.readyToEat = false;    }    Fruit.update(req.body, {        where: {id: req.params.index},        returning: true    })    .then(updatedFruit => {        Season.findByPk(req.body.season)        .then(foundSeason => {            Fruit.findByPk(req.params.index)            .then(foundFruit => {                foundFruit.addSeason(foundSeason);                res.redirect('/fruits');            })                    })    })}
+```
+
+### Show which fruit is eaten in what season
+
+`controllers/fruits.js`
+
+```
+const show = (req, res) => {    Fruit.findByPk(req.params.index, {        include : [            {            model: User,            attributes: ['name']            },            {                model: Season            }        ],        attributes: ['name', 'color', 'readyToEat']    })    .then(foundFruit => {        res.render('show.ejs', {            fruit: foundFruit        });    })}
+```
+
+`show.ejs`
+
+```
+	<h3>It is available in Seasons:</h3>    <% for (let i=0; i< fruit.Seasons.length; i++){ %>        <li>           <a href="/seasons/<%=fruit.Seasons[i].id%>"><%=fruit.Seasons[i].name%></a>        </li>        <br>    <% } %>
+```
 
 
 <!--
