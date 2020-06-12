@@ -27,72 +27,7 @@ Here are the rough steps we'll follow:
 
 ## Code Along: hasMany
 
-### Create User model
-
-Lets use the Sequelize CLI `model:generate` command again to create a `User` model with `name`, `username` and `password` attributes:
-
-`sequelize model:generate --name User --attributes name:string,username:string,password:string`
-
-Just like before two files will be created- `models/user.js` and `migrations/XXXXXXX-create-user.js`. Just like earlier we'll add default values to `createdAt` and `updatedAt`.
-
-```
-'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.createTable('Users', {      id: {        allowNull: false,        autoIncrement: true,        primaryKey: true,        type: Sequelize.INTEGER      },      name: {        type: Sequelize.STRING      },      username: {        type: Sequelize.STRING      },      password: {        type: Sequelize.STRING      },      createdAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      },      updatedAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      }    });  },  down: (queryInterface, Sequelize) => {    return queryInterface.dropTable('Users');  }};
-```
-
-Now, we'll run the migrations to create `User` table in our database.
-
-`sequelize db:migrate`
-
-Just to confirm, let's go into the `psql` shell and confirm that a `Users` table has been created.
-
-1. `psql` - You can run this command from any directory to enter the Postgres shell
-2. `\l` - See the list of databases
-3. `\c fruits_dev` - Connect to our database
-4. `\dt` - This will show the database tables 
-
-
-#### Add seed data in User
-
-`sequelize seed:generate --name demo-users`
-
-Fill the empty seeders file.
-
-```
-'use strict';
-
-module.exports = {
-  up: (queryInterface, Sequelize) => {
-    return queryInterface.bulkInsert('Users', [
-      {        name:'Tony Stark',        username: 'ironman',        password: 'prettyawesome'      },      {        name:'Clark Kent',        username: 'superman',        password: `canfly`      },      {        name:'Bruce Wayne',        username: 'batman',        password: 'hasgadgets'      }
-    ], {});
-  },
-
-  down: (queryInterface, Sequelize) => {
-    /*
-      Add reverting commands here.
-      Return a promise to correctly handle asynchronicity.
-
-      Example:
-      return queryInterface.bulkDelete('People', null, {});
-    */
-  }
-};
-
-```
-
-Run `sequelize db:seed:all` to seed `Users` table.
-
-#### Running a seed file
-
-There are multiple ways of running a seed file
-
-**sequelize db:seed:all** will run all the seed files, even the ones that have been run before.
-
-**sequelize db:seed --seed XXXXXXXXX-demo-users.js** will run a specific seed file mentioned by name in the command
-
-Confirm in `psql` by running `SELECT * FROM "Users";`
-
----------------------------
+First things first, now that we have removed use of `fruits` and `users` array from our controllers we can safely delete the file and remove imports from the controllers.
 
 ### Add column `userId` to `Fruits` 
 
@@ -108,7 +43,11 @@ Now that `User` model has been created we can go ahead and add `userId` column t
 
 	```bash
 	  up: (queryInterface, Sequelize) => {
-	    return queryInterface.addColumn('Fruits', 'userId', { type: Sequelize.INTEGER });
+	    return queryInterface.addColumn('Fruits', 
+	    'userId', 
+	    { 
+	    	type: Sequelize.INTEGER 
+	    });
 	  },
 	``` 
 
@@ -172,7 +111,7 @@ Now that `User` model has been created we can go ahead and add `userId` column t
 	};
 	```
 
-6. Run `sequelize db:seed:all` 
+6. Run `sequelize db:seed --seed <xxxxxxxxx-demo-fruits.js>`. 
 
 
 #### Bulk Delete exiting Data
@@ -180,16 +119,7 @@ Now that `User` model has been created we can go ahead and add `userId` column t
 If you look at the data in `Users` and `Fruits` tables, you'll see that there is a lot of duplication.
 
 ```
-fruits_dev=# SELECT * FROM "Users";
- id |    name     | username |   password    |         createdAt          |         updatedAt
-----+-------------+----------+---------------+----------------------------+----------------------------
-  1 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07
-  2 | Clark Kent  | superman | canfly        | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07
-  3 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:13:44.009-07 | 2020-05-20 13:13:44.009-07
-  4 | Tony Stark  | ironman  | prettyawesome | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07
-  5 | Clark Kent  | superman | canfly        | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07
-  6 | Bruce Wayne | batman   | hasgadgets    | 2020-05-20 13:25:32.342-07 | 2020-05-20 13:25:32.342-07
-(6 rows)
+fruits_dev=# select * from "Fruits"fruits_dev-# ; id |  name  | color  | readyToEat |         createdAt          |         updatedAt          | userId----+--------+--------+------------+----------------------------+----------------------------+--------  3 | banana | yellow | t          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |  4 | Grapes | green  | t          | 2020-06-11 11:38:09.263-07 | 2020-06-11 11:38:09.263-07 |  2 | pear12 | green  | f          | 2020-06-11 08:56:21.261-07 | 2020-06-11 12:16:42.964-07 |  5 | apple  | red    | t          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |      1  6 | pear   | green  | f          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |      2  7 | banana | yellow | t          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |      3(6 rows)
 ```
 
 This means that everytime we are seeding data in the database it is creating new rows without deleting the old ones. Lets make use of `down` method in our seed files to delete previous rows before seeding new data.
@@ -216,9 +146,11 @@ Simillarly we'll make the change in `xxxxxxxxxxx-demo-users.js`,
 
 Once the above changes our made, we will ask sequelize to delete the data
 
-`sequelize db:seed:undo:all`
+`sequelize db:seed:undo --seed 20200608030632-demo-fruits.js`
 
-After this, run `sequelize db:seed:all` to reseed the data.
+If you want to undo all the seed files, run `sequelize db:seed:undo:all`
+
+After this, run `sequelize db:seed --seed xxxxxxxxx-demo-fruits.js` to reseed the `Fruits` data.
 
 
 ### `hasMany`/`belongsTo` - Sequelize
@@ -244,9 +176,15 @@ In Sequelize this is represented by `hasMany` and `belongsTo`.
 
 In the above case when we do `Fruit.belongsTo(User)`, we are creating a relation that will enable us to call `fruit.getUser()`. `User.hasMany(Fruit)` links the association other way, we can now call `user.getFruits()` to get all fruits added by a user. This is called as bi-directional relationship. 
 
-### Update Controller
+### Update Fruit Controller
 
-So far we don't have a separate APIs to add the users, before creating that for we will access a user from fruit. Remember `Fruit.belongsTo(User)` lets us get User data from fruit. For that we'll do one small change `show()`.
+Let's update our fruit controller to access a user from fruit. 
+
+```
+const User = require('../models').User;
+```
+
+Remember `Fruit.belongsTo(User)` lets us get User data from fruit. For that we'll do one small change `show()`.
 
 ```
 const show = (req, res) => {
@@ -262,7 +200,7 @@ const show = (req, res) => {
 ```
 `include` will also populate `User` data when `Fruit` is retrieved from the database.
 
-### Update View
+### Update Fruit Show View
 
 We'll add `User` information in `show.ejs`. This is the view where we are displaying details of each fruit.
 
@@ -297,6 +235,25 @@ You can add the below code in `show()` in `controllers/fruit.js`. In the `attrib
 const show = (req, res) => {    Fruit.findByPk(req.params.index, {        include : [{            model: User,            attributes: ['name']        }],        attributes: ['name', 'color', 'readyToEat']    })    .then(fruit => {        console.log(fruit)        res.render('show.ejs', {            fruit: fruit        });    })}
 ```
 
+### Update User Controller
+
+Import Fruit model,
+
+```
+const Fruit = require('../models').Fruit;```
+
+On the profile page list all the fruits created by the user.
+
+```
+const renderProfile = (req, res) => {    User.findByPk(req.params.index, {        include: [{            model: Fruit,            attributes: ['id','name']        }]     })    .then(userProfile => {        console.log(userProfile.Fruits);        res.render('users/profile.ejs', {            user: userProfile        })    })}
+```
+
+### Update Profile View
+
+```
+	<h3>List of Fruits added by you:</h3>    <% for (let i=0; i< user.Fruits.length; i++){ %>            <li>               <a href="/fruits/<%=user.Fruits[i].id%>"><%=user.Fruits[i].name%></a>            </li>            <br>    <% } %>    <br><br>
+```
+
 ## Code Along: belongsToMany
 
 So far we have `Fruit` and `User` models where a `Fruit hasMany Users`. Now we are going to create another model `Season` where a fruit can belong to multiple seasons and each season can have multiple fruits. That means that **Fruit has many-to-many relationship with season**. 
@@ -307,39 +264,35 @@ Previously we have learned that we need a *Join Table* to save many-to-many rela
 
 - Just like before create a model `season` with jut one field `name` which will be a `string`. 
 	`sequelize model:generate --name Season --attributes name:string`
+- Update migration
+
+	```
+	'use strict';	module.exports = {  	up: (queryInterface, Sequelize) => {    return queryInterface.createTable('Seasons', {      id: {        allowNull: false,        autoIncrement: true,        primaryKey: true,        type: Sequelize.INTEGER      },      name: {        type: Sequelize.STRING,        allowNull: false      },      createdAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      },      updatedAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      }    });  	},  	down: (queryInterface, Sequelize) => {    	return queryInterface.dropTable('Seasons');  	}	};
+	```
+	
 - Migrate it. 
 	`sequelize db:migrate`
+- Generate seed file
+	`sequelize seed:generate --name demo-seasons`
 - Add some seed data it in, mainly season names. 
-- Undo the previously seeded data in order to avoid duplicates
-	`sequelize-cli db:seed:undo:all`
-- Add that data to the database.
-	`sequelize db:seed:all`
+	
+```
+'use strict';	module.exports = {  	up: (queryInterface, Sequelize) => {    return queryInterface.bulkInsert('Seasons', [      {        name:'Summer'      },      {        name:'Winter'      },      {        name:'Spring'      },      {        name: 'Autumn'      }     ], {});  	},  	down: (queryInterface, Sequelize) => {    	return queryInterface.bulkDelete('Seasons', null, {});  	}	};
+```
+	
+- Seed the data- 
+	`sequelize db:seed --seed <xxxxxxxxxxx-demo-seasons.js>`
 - Verify that data is seeded into the database
 	
 ```
 fruits_dev=# SELECT * FROM "Seasons"; id |  name  |         createdAt          |         updatedAt----+--------+----------------------------+----------------------------  6 | Summer | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  7 | Winter | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  8 | Spring | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  9 | Autumn  | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07(4 rows)
 ```
 
-Now that you have your model setup, lets quickly look at the code so far,
+Now that you have your model setup, 	
 
-**models/season.js**
 
-```
-'use strict';module.exports = (sequelize, DataTypes) => {  const Season = sequelize.define('Season', {    name: DataTypes.STRING  }, {});  Season.associate = function(models) {    // associations can be defined here  };  return Season;};
-```
 
-**migrations/xxxxxxxxxx-create-season.js**
-
-```
-'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.createTable('Seasons', {      id: {        allowNull: false,        autoIncrement: true,        primaryKey: true,        type: Sequelize.INTEGER      },      name: {        type: Sequelize.STRING      },      createdAt: {        allowNull: false,        type: Sequelize.DATE      },      updatedAt: {        allowNull: false,        type: Sequelize.DATE      }    });  },  down: (queryInterface, Sequelize) => {    return queryInterface.dropTable('Seasons');  }};
-```
-
-**seeders/xxxxxxxxx-demo-season.js**
-
-```
-'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.bulkInsert('Seasons', [      {        name:'Summer',        createdAt: new Date(),        updatedAt: new Date()      },      {        name:'Winter',        createdAt: new Date(),        updatedAt: new Date()      },      {        name:'Spring',        createdAt: new Date(),        updatedAt: new Date()      },      {        name: 'Autumn',        createdAt: new Date(),        updatedAt: new Date()      }     ], {});  },  down: (queryInterface, Sequelize) => {    return queryInterface.bulkDelete('Seasons', null, {});  }};
-```
-	
+<!--
 ### We Do
 	
 ## Validations
@@ -740,3 +693,4 @@ const Pet = sequelize.define('Pet', {
 	![](https://i.imgur.com/h5anR3n.png)
 
 </details>
+-->
