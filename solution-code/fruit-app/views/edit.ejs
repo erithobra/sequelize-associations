@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+
+    <body>
+        <h1>Edit Fruit Page</h1>
+
+        <form action="/fruits/<%=fruit.id%>?_method=PUT" method="POST">
+            Name: <input type="text" name="name" value="<%=fruit.name%>" />
+            Color: <input type="text" name="color" value="<%=fruit.color%>" />
+            Is Ready to Eat:
+                <input type="checkbox" name="readyToEat" 
+                    <% if(fruit.readyToEat === true) { %>
+                        checked
+                    <% } %>
+                />
+            <select name="season">
+                <% for(let i=0; i<seasons.length; i++){ %>
+                    <option value="<%=seasons[i].id%>"><%=seasons[i].name%></option>
+                <% } %>
+            </select>
+
+            <input type="submit" value="Edit Fruit" />
+        </form>
+    </body>
+</html>
