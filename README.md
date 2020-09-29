@@ -44,8 +44,7 @@ Now that `User` model has been created we can go ahead and add `userId` column t
     	await queryInterface.addColumn('Fruits', 
     	'userId', 
     	{ 
-    		type: Sequelize.INTEGER,
-    		references: { model: 'Users', key: 'id' } 
+    		type: Sequelize.INTEGER 
     	});
   	},
 	``` 
