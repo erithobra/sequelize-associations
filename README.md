@@ -257,6 +257,7 @@ Since we are now attaching user Id with Fruit let's create a field for that in `
 <form action="/fruits" method="POST">	User Id: <input type="text" name="userId" />    Name: <input type="text" name="name" />    Color: <input type="text" name="color" />    Is Ready to Eat: <input type="checkbox" name="readyToEat" />    <input type="submit" value="Create Fruit" /></form>
 ```
 
+<!--
 ## Code Along: belongsToMany
 
 So far we have `Fruit` and `User` models where a `Fruit hasMany Users`. Now we are going to create another model `Season` where a fruit can belong to multiple seasons and each season can have multiple fruits. That means that **Fruit has many-to-many relationship with season**. 
@@ -265,12 +266,42 @@ Previously we have learned that we need a *Join Table* to save many-to-many rela
 
 ### You Do
 
-- Just like before create a model `season` with just one field `name` which will be a `string`. 
+- Just like before create a model `Season` with just one field `name` which will be a `string`. 
 	`sequelize model:generate --name Season --attributes name:string`
 - Update migration
 
 	```
-	'use strict';	module.exports = {  	up: (queryInterface, Sequelize) => {    return queryInterface.createTable('Seasons', {      id: {        allowNull: false,        autoIncrement: true,        primaryKey: true,        type: Sequelize.INTEGER      },      name: {        type: Sequelize.STRING,        allowNull: false      },      createdAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      },      updatedAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      }    });  	},  	down: (queryInterface, Sequelize) => {    	return queryInterface.dropTable('Seasons');  	}	};
+	'use strict';
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('Seasons', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: new Date()
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: new Date()
+      }
+    });
+  },
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('Seasons');
+  }
+};
 	```
 	
 - Migrate it. 
@@ -280,7 +311,30 @@ Previously we have learned that we need a *Join Table* to save many-to-many rela
 - Add some seed data it in, mainly season names. 
 	
 ```
-'use strict';	module.exports = {  	up: (queryInterface, Sequelize) => {    return queryInterface.bulkInsert('Seasons', [      {        name:'Summer'      },      {        name:'Winter'      },      {        name:'Spring'      },      {        name: 'Autumn'      }     ], {});  	},  	down: (queryInterface, Sequelize) => {    	return queryInterface.bulkDelete('Seasons', null, {});  	}	};
+'use strict';
+
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.bulkInsert('Seasons', [
+        {
+          name:'Summer'
+        },
+        {
+          name:'Winter'
+        },
+        {
+          name:'Spring'
+        },
+        {
+          name: 'Autumn'
+        } 
+      ], {});
+  },
+
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.bulkDelete('Seasons', null, {});
+  }
+};
 ```
 	
 - Seed the data- 
@@ -288,10 +342,18 @@ Previously we have learned that we need a *Join Table* to save many-to-many rela
 - Verify that data is seeded into the database
 	
 ```
-fruits_dev=# SELECT * FROM "Seasons"; id |  name  |         createdAt          |         updatedAt----+--------+----------------------------+----------------------------  6 | Summer | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  7 | Winter | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  8 | Spring | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07  9 | Autumn  | 2020-05-22 14:36:58.633-07 | 2020-05-22 14:36:58.633-07(4 rows)
+fruits_dev=# select * from "Seasons";
+ id |  name  |         createdAt          |         updatedAt          
+----+--------+----------------------------+----------------------------
+  1 | Summer | 2020-09-29 08:41:24.678-07 | 2020-09-29 08:41:24.678-07
+  2 | Winter | 2020-09-29 08:41:24.678-07 | 2020-09-29 08:41:24.678-07
+  3 | Spring | 2020-09-29 08:41:24.678-07 | 2020-09-29 08:41:24.678-07
+  4 | Autumn | 2020-09-29 08:41:24.678-07 | 2020-09-29 08:41:24.678-07
+(4 rows)
 ```
 
 Now that you have your `Season` model setup, we will create the model for our join table.
+
 
 ### Join Table
 
@@ -299,10 +361,34 @@ Generate model,
 
 `sequelize model:create --name SeasonFruit --attributes fruitId:integer,seasonId:integer`
 
+
 `SeasonFruit` model will look like,
 
 ```
-'use strict';module.exports = (sequelize, DataTypes) => {  const SeasonFruit = sequelize.define('SeasonFruit', {    fruitId: DataTypes.INTEGER,    seasonId: DataTypes.INTEGER  }, {});  SeasonFruit.associate = function(models) {    // associations can be defined here  };  return SeasonFruit;};
+'use strict';
+const {
+  Model
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class SeasonFruit extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+    }
+  };
+  SeasonFruit.init({
+    fruitId: DataTypes.INTEGER,
+    seasonId: DataTypes.INTEGER
+  }, {
+    sequelize,
+    modelName: 'SeasonFruit',
+  });
+  return SeasonFruit;
+};
 ```
 
 Update the migration file,
@@ -360,7 +446,7 @@ const show = (req, res) => {    Fruit.findByPk(req.params.index, {        incl
 ```
 	<h3>It is available in Seasons:</h3>    <% for (let i=0; i< fruit.Seasons.length; i++){ %>        <li>           <a href="/seasons/<%=fruit.Seasons[i].id%>"><%=fruit.Seasons[i].name%></a>        </li>        <br>    <% } %>
 ```
-
+-->
 
 <!--
 ### We Do
