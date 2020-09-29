@@ -18,8 +18,6 @@ We'll also use this as an opportunity to review migrations and introduce Sequeli
 
 Here are the rough steps we'll follow:
 
-- Create `User` model
-- Add seed data
 - Add an `userId` foreign key column to the `Fruits` table
 - Re-seed our database so that our starter fruits have a foreign key.
 - Define the Sequelize associations in the `Fruit` and `User` models.
@@ -42,13 +40,14 @@ Now that `User` model has been created we can go ahead and add `userId` column t
 2. Inside the file, add code to add the column to the table.
 
 	```bash
-	  up: (queryInterface, Sequelize) => {
-	    return queryInterface.addColumn('Fruits', 
-	    'userId', 
-	    { 
-	    	type: Sequelize.INTEGER 
-	    });
-	  },
+	up: async (queryInterface, Sequelize) => {
+    	await queryInterface.addColumn('Fruits', 
+    	'userId', 
+    	{ 
+    		type: Sequelize.INTEGER,
+    		references: { model: 'Users', key: 'id' } 
+    	});
+  	},
 	``` 
 
 3. Run `sequelize db:migrate` to run the new migration file.
@@ -56,67 +55,59 @@ Now that `User` model has been created we can go ahead and add `userId` column t
 4. In the `models/fruit.js`, make sure to add the new column so that our app knows about it.
 
 	```js
-	const Fruit = sequelize.define('Fruit', {
-	    name: DataTypes.STRING,
-	    color: DataTypes.STRING,
-	    readyToEat: DataTypes.BOOLEAN,
-	    userId: DataTypes.INTEGER
-  	}, {});
+	Fruit.init(
+    {
+      name: DataTypes.STRING,
+      color: DataTypes.STRING,
+      readyToEat: DataTypes.BOOLEAN,
+      userId: DataTypes.INTEGER,
+    },
  	```
 
 1. Let's reseed the `seeders/<TIMESTAMP>-demo-fruits.js` with a some owner ids.
 
-	```
+
+```
 	'use strict';
 
-	module.exports = {
-	  up: (queryInterface, Sequelize) => {
-	    return queryInterface.bulkInsert('Fruits', [
-	      {
-		  name:'apple',
-		  color: 'red',
-		  readyToEat: true,
-		  userId: 1,
-		  createdAt: new Date(),
-		  updatedAt: new Date()
-	      },
-	      {
-		  name:'pear',
-		  color: 'green',
-		  readyToEat: false,
-		  userId: 2,
-		  createdAt: new Date(),
-		  updatedAt: new Date()
-	      },
-	      {
-		  name:'banana',
-		  color: 'yellow',
-		  readyToEat: true,
-		  userId: 3,
-		  createdAt: new Date(),
-		  updatedAt: new Date()
-	      }
-	    ], {});
-	  },
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.bulkInsert('Fruits', [
+      {
+	  name:'apple',
+	  color: 'red',
+	  readyToEat: true,
+	  userId: 1,
+      },
+      {
+	  name:'pear',
+	  color: 'green',
+	  readyToEat: false,
+	  userId: 2,
+      },
+      {
+	  name:'banana',
+	  color: 'yellow',
+	  readyToEat: true,
+	  userId: 3,
+      }
+    ], {});
+  },
 
-	  down: (queryInterface, Sequelize) => {
-	    /*
-	      Add reverting commands here.
-	      Return a promise to correctly handle asynchronicity.
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.bulkDelete('Fruits', null, {});
+	}
+};
+```
 
-	      Example:
-	      return queryInterface.bulkDelete('Fruits', null, {});
-	    */
-		}
-	};
-	```
-
-6. Run `sequelize db:seed --seed <xxxxxxxxx-demo-fruits.js>`. 
-
+6. To make sure our userIds match up, let's drop all the database tables and reseed them. Run `sequelize db:migrate:undo:all` to run the down methods and drop all the tables.
+7. Run `sequelize db:migrate` to run the migrations again and re-create the tables.
+8. Run `sequelize db:seed:all` to reseed database.
+ 
 
 #### Bulk Delete exiting Data
 
-If you look at the data in `Fruits` tables, you'll see that there is a lot of duplication.
+If you look at the data in `Fruits` tables, and there is a lot of duplication.
 
 ```
 fruits_dev=# select * from "Fruits"fruits_dev-# ; id |  name  | color  | readyToEat |         createdAt          |         updatedAt          | userId----+--------+--------+------------+----------------------------+----------------------------+--------  3 | banana | yellow | t          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |  4 | Grapes | green  | t          | 2020-06-11 11:38:09.263-07 | 2020-06-11 11:38:09.263-07 |  2 | pear12 | green  | f          | 2020-06-11 08:56:21.261-07 | 2020-06-11 12:16:42.964-07 |  5 | apple  | red    | t          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |      1  6 | pear   | green  | f          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |      2  7 | banana | yellow | t          | 2020-06-11 08:56:21.261-07 | 2020-06-11 08:56:21.261-07 |      3(6 rows)
@@ -162,16 +153,16 @@ In Sequelize this is represented by `hasMany` and `belongsTo`.
 4. In the `models/user.js` file, add the association for an `User.hasMany(models.Fruit)`.
 
 	```js
-	User.associate = function(models) {
-    	User.hasMany(models.Fruit, { foreignKey: 'userId' })
-  	};
+	static associate(models) {
+		User.hasMany(models.Fruit, { foreignKey: "userId" });
+ 	}
 	``` 
 5. In the `models/fruit.js` file, add the association for a `Fruit.belongsTo(models.User)`.
 
 	```js
-	Fruit.associate = function(models) {
-	    Fruit.belongsTo(models.User, { foreignKey: 'userId' })
-	};
+	static associate(models) {
+		Fruit.belongsTo(models.User, { foreignKey: "userId" });
+	}
 	``` 
 
 In the above case when we do `Fruit.belongsTo(User)`, we are creating a relation that will enable us to call `fruit.getUser()`. `User.hasMany(Fruit)` links the association other way, we can now call `user.getFruits()` to get all fruits added by a user. This is called as bi-directional relationship. 
