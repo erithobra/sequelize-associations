@@ -269,8 +269,8 @@ Previously we have learned that we need a *Join Table* to save many-to-many rela
 	`sequelize model:generate --name Season --attributes name:string`
 - Update migration
 
-	```
-	'use strict';
+```
+'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('Seasons', {
@@ -301,7 +301,7 @@ module.exports = {
     await queryInterface.dropTable('Seasons');
   }
 };
-	```
+```
 	
 - Migrate it. 
 	`sequelize db:migrate`
