@@ -256,7 +256,7 @@ Since we are now attaching user Id with Fruit let's create a field for that in `
 <form action="/fruits" method="POST">	User Id: <input type="text" name="userId" />    Name: <input type="text" name="name" />    Color: <input type="text" name="color" />    Is Ready to Eat: <input type="checkbox" name="readyToEat" />    <input type="submit" value="Create Fruit" /></form>
 ```
 
-<!--
+
 ## Code Along: belongsToMany
 
 So far we have `Fruit` and `User` models where a `Fruit hasMany Users`. Now we are going to create another model `Season` where a fruit can belong to multiple seasons and each season can have multiple fruits. That means that **Fruit has many-to-many relationship with season**. 
@@ -396,21 +396,34 @@ Update the migration file,
 'use strict';module.exports = {  up: (queryInterface, Sequelize) => {    return queryInterface.createTable('SeasonFruits', {      id: {        allowNull: false,        autoIncrement: true,        primaryKey: true,        type: Sequelize.INTEGER      },      fruitId: {        type: Sequelize.INTEGER,        allowNull: false      },      seasonId: {        type: Sequelize.INTEGER,        allowNull: false      },      createdAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      },      updatedAt: {        allowNull: false,        defaultValue: new Date(),        type: Sequelize.DATE      }    },    {      uniqueKeys: {          actions_unique: {              fields: ['fruitId', 'seasonId']          }      }    });  },  down: (queryInterface, Sequelize) => {    return queryInterface.dropTable('SeasonFruits');  }};
 ``` 	
 
+Run the migration file `sequelize db:migrate`
+
 Update `Fruit` model,
 
 ```
-'use strict';module.exports = (sequelize, DataTypes) => {  const Fruit = sequelize.define('Fruit', {    name: DataTypes.STRING,    color: DataTypes.STRING,    readyToEat: DataTypes.BOOLEAN,    userId: DataTypes.INTEGER  }, {});  Fruit.associate = function(models) {    Fruit.belongsTo(models.User, { foreignKey: 'userId' })    Fruit.belongsToMany(models.Season, {      through: 'SeasonFruit',      foreignKey: 'fruitId',      otherKey: 'seasonId'    });  };  return Fruit;};
+	static associate(models) {
+      Fruit.belongsTo(models.User, { foreignKey: 'userId' });
+      Fruit.belongsToMany(models.Season, {
+        through: "SeasonFruit",
+        foreignKey: "fruitId",
+        otherKey: "seasonId",
+      });
+    }
 ```
 
 Update `Season` model,
 
 ```
-'use strict';module.exports = (sequelize, DataTypes) => {  const Season = sequelize.define('Season', {    name: DataTypes.STRING  }, {});  Season.associate = function(models) {    Season.belongsToMany(models.Fruit, {      through: 'SeasonFruit',      foreignKey: 'seasonId',      otherKey: 'fruitId'    });  };  return Season;};
+	static associate(models) {
+      Season.belongsToMany(models.Fruit, {
+        through: "SeasonFruit",
+        foreignKey: "seasonId",
+        otherKey: "fruitId",
+      });
+    }
 ```
 
-###
-
-Update Fruit Controller to display all seasons while editing the fruit,
+### Update Fruit Controller to display all seasons while editing the fruit,
 
 ```
 const renderEdit = (req, res) => {    Fruit.findByPk(req.params.index)    .then(foundFruit => {        Season.findAll()        .then(allSeasons => {            res.render('edit.ejs', {                fruit: foundFruit,                seasons: allSeasons            });        })    })}
@@ -443,30 +456,13 @@ const show = (req, res) => {    Fruit.findByPk(req.params.index, {        incl
 `show.ejs`
 
 ```
-	<h3>It is available in Seasons:</h3>    <% for (let i=0; i< fruit.Seasons.length; i++){ %>        <li>           <a href="/seasons/<%=fruit.Seasons[i].id%>"><%=fruit.Seasons[i].name%></a>        </li>        <br>    <% } %>
+	<h3>It is available in Seasons:</h3>    <% for (let i=0; i< fruit.Seasons.length; i++){ %>        <li>           <%=fruit.Seasons[i].name%>        </li>        <br>    <% } %>
 ```
--->
+
 
 <!--
 ### We Do
 	
-## Validations
-
-[Sequelize Validations](https://sequelize.readthedocs.io/en/latest/docs/models-definition/#validations)
-
-Let's add a validation that A Pet will not be persisted without a name field.
-
-`models/pet.js`
-
-```js
-const Pet = sequelize.define('Pet', {
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-```
-
-<details>
 
 <summary>Has Many Through</summary>
 ## hasManyThrough
