@@ -401,26 +401,26 @@ Run the migration file `sequelize db:migrate`
 Update `Fruit` model,
 
 ```
-	static associate(models) {
-      Fruit.belongsTo(models.User, { foreignKey: 'userId' });
-      Fruit.belongsToMany(models.Season, {
-        through: "SeasonFruit",
-        foreignKey: "fruitId",
-        otherKey: "seasonId",
-      });
-    }
+static associate(models) {
+  Fruit.belongsTo(models.User, { foreignKey: 'userId' });
+  Fruit.belongsToMany(models.Season, {
+    through: "SeasonFruit",
+    foreignKey: "fruitId",
+    otherKey: "seasonId",
+  });
+}
 ```
 
 Update `Season` model,
 
 ```
-	static associate(models) {
-      Season.belongsToMany(models.Fruit, {
-        through: "SeasonFruit",
-        foreignKey: "seasonId",
-        otherKey: "fruitId",
-      });
-    }
+static associate(models) {
+  Season.belongsToMany(models.Fruit, {
+    through: "SeasonFruit",
+    foreignKey: "seasonId",
+    otherKey: "fruitId",
+  });
+}
 ```
 
 ### Update Fruit Controller to display all seasons while editing the fruit,
