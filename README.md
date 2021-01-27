@@ -155,7 +155,7 @@ After this, run `sequelize db:seed --seed xxxxxxxxx-demo-fruits.js` to reseed th
 
 ### `hasMany`/`belongsTo` - Sequelize
 
-Now we talked about it briefly, one `User` can have many `Fruits`, that means `User` has a **many-to-one** relationship with `Fruits`. On the flip side a `Fruit` can be created by only one `User` so `Fruit` has a **one-to-many** relationship with `User`. This means that we have a foreign key column `userId` in `Fruits` table in order to have an association between the two tables.
+Now we talked about it briefly, one `User` can have many `Fruits`, that means `User` has a **one-to-many** relationship with `Fruits` (**hasMany** fruits. On the flip side a `Fruit` can be created by only one `User` so `Fruit` has a **many-to-one** relationship with `User` (**belongsTo** User). This means that we have a foreign key column `userId` in `Fruits` table in order to have an association between the two tables.
 
 In Sequelize this is represented by `hasMany` and `belongsTo`. 
 
