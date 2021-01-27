@@ -206,7 +206,7 @@ const show = (req, res) => {
 
 We'll add `User` information in `show.ejs`. This is the view where we are displaying details of each fruit.
 
-```
+```html
 <!DOCTYPE html>
 <html>
     <head>
@@ -282,7 +282,7 @@ const renderProfile = (req, res) => {
 
 #### Update Profile View
 
-```
+```html
 	<h3>Fruits added by you:</h3>
     <% for (let i=0; i< user.Fruits.length; i++){ %>
             <li>
@@ -298,7 +298,7 @@ const renderProfile = (req, res) => {
 
 Since we are now attaching user Id with Fruit let's create a field for that in `new.ejs`
 
-```
+```html
 <form action="/fruits" method="POST">
 	User Id: <input type="text" name="userId" />
     Name: <input type="text" name="name" />
@@ -534,7 +534,7 @@ const renderEdit = (req, res) => {
 
 Update the `edit.ejs` view.
 
-```
+```html
 <select name="season">
 	<% for ( let i = 0; i < seasons.length; i++ ) {
 		let selected = ( i == 0 ) ? "selected" : "";
@@ -601,7 +601,7 @@ const show = (req, res) => {
 
 `show.ejs`
 
-```
+```html
 	<h3>It is available in Seasons:</h3>
     <% for (let i=0; i< fruit.Seasons.length; i++){ %>
         <li>
